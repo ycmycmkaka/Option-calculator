@@ -2,93 +2,258 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <title>期權理論價 Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>期權估值及 IV 反推工具</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f7f7f7;
-      padding: 30px;
+      font-family: Arial, "Microsoft JhengHei", sans-serif;
+      background: #f4f6f8;
       color: #222;
+      margin: 0;
+      padding: 24px;
     }
-    .box {
-      max-width: 650px;
+    .container {
+      max-width: 1100px;
       margin: auto;
-      background: white;
-      padding: 25px;
-      border-radius: 14px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
-    h1 { text-align: center; }
+    h1 {
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 24px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.07);
+    }
     label {
       display: block;
-      margin-top: 15px;
+      margin-top: 13px;
       font-weight: bold;
+      font-size: 14px;
     }
-    input {
+    input, select {
       width: 100%;
       padding: 10px;
       margin-top: 6px;
       font-size: 16px;
       box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 8px;
     }
     button {
       width: 100%;
-      margin-top: 22px;
-      padding: 12px;
-      font-size: 18px;
-      background: #111;
+      margin-top: 20px;
+      padding: 13px;
+      font-size: 17px;
+      background: #111827;
       color: white;
       border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    .result {
-      margin-top: 25px;
-      padding: 18px;
-      background: #f0f4ff;
       border-radius: 10px;
-      font-size: 17px;
-      line-height: 1.7;
+      cursor: pointer;
+      font-weight: bold;
     }
-    .small {
-      font-size: 13px;
+    button:hover {
+      background: #000;
+    }
+    .result-main {
+      font-size: 28px;
+      font-weight: bold;
+      margin: 8px 0 18px;
+    }
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid #eee;
+      padding: 9px 0;
+      font-size: 15px;
+    }
+    .result-row strong {
+      font-size: 16px;
+    }
+    .green { color: #087f5b; }
+    .red { color: #c92a2a; }
+    .blue { color: #1c7ed6; }
+    .muted {
       color: #666;
-      margin-top: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .warning {
+      background: #fff4e6;
+      padding: 12px;
+      border-radius: 10px;
+      margin-top: 15px;
+      font-size: 14px;
+      color: #7c4a00;
+    }
+    @media (max-width: 800px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
+
 <body>
+<div class="container">
+  <h1>期權估值及 IV 反推工具</h1>
+  <div class="subtitle">Black-Scholes Calculator｜理論價｜Greeks｜反推引伸波幅</div>
 
-<div class="box">
-  <h1>期權理論價 Calculator</h1>
+  <div class="grid">
+    <div class="card">
+      <h2>輸入資料</h2>
 
-  <label>股票現價 S</label>
-  <input id="S" type="number" value="100" step="0.01">
+      <label>期權類型</label>
+      <select id="optionType">
+        <option value="call">Call 買權</option>
+        <option value="put">Put 沽權</option>
+      </select>
 
-  <label>行使價 K</label>
-  <input id="K" type="number" value="100" step="0.01">
+      <label>股票現價 S</label>
+      <input id="S" type="number" value="100" step="0.01">
 
-  <label>今日日期</label>
-  <input id="todayDate" type="date">
+      <label>行使價 K</label>
+      <input id="K" type="number" value="100" step="0.01">
 
-  <label>到期日 Expiry Date</label>
-  <input id="expiryDate" type="date">
+      <label>今日日期</label>
+      <input id="todayDate" type="date">
 
-  <label>無風險利率 r（%）</label>
-  <input id="r" type="number" value="4.5" step="0.01">
+      <label>到期日</label>
+      <input id="expiryDate" type="date">
 
-  <label>引伸波幅 IV（%）</label>
-  <input id="sigma" type="number" value="50" step="0.01">
+      <label>無風險利率 r（%）</label>
+      <input id="r" type="number" value="4.5" step="0.01">
 
-  <button onclick="calculate()">計算期權理論價</button>
+      <label>引伸波幅 IV（%）——用嚟計理論價</label>
+      <input id="sigma" type="number" value="50" step="0.01">
 
-  <div class="result" id="result">
-    請輸入資料後按計算。
+      <label>市場期權價 Market Price（可選，用嚟反推 IV）</label>
+      <input id="marketPrice" type="number" value="" step="0.01" placeholder="例如 12.35">
+
+      <button onclick="calculate()">計算</button>
+
+      <div class="warning">
+        貼士：如果你想同富途 / IBKR / Yahoo Finance 價格對比，市場價最好用 Bid / Ask 中間價。
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>主要結果</h2>
+
+      <div class="result-row">
+        <span>理論價</span>
+        <strong id="theoreticalPrice">$--</strong>
+      </div>
+
+      <div class="result-row">
+        <span>市場價</span>
+        <strong id="marketPriceDisplay">--</strong>
+      </div>
+
+      <div class="result-row">
+        <span>理論價 vs 市場價</span>
+        <strong id="priceDiff">--</strong>
+      </div>
+
+      <div class="result-row">
+        <span>反推 IV</span>
+        <strong id="impliedVol">--</strong>
+      </div>
+
+      <div class="result-row">
+        <span>剩餘日數</span>
+        <strong id="daysDisplay">--</strong>
+      </div>
+
+      <div class="result-row">
+        <span>年化時間 T</span>
+        <strong id="tDisplay">--</strong>
+      </div>
+
+      <div class="warning">
+        如果「反推 IV」明顯高過你輸入嘅 IV，代表市場期權價比你模型計出嚟更貴。
+      </div>
+    </div>
   </div>
 
-  <div class="small">
-    使用 Black-Scholes 模型，只作理論參考，不代表實際成交價。美股期權多數係美式期權，Black-Scholes 係理論近似。
+  <div class="grid" style="margin-top:18px;">
+    <div class="card">
+      <h2>Greeks</h2>
+
+      <div class="result-row">
+        <span>Delta</span>
+        <strong id="delta">--</strong>
+      </div>
+
+      <div class="result-row">
+        <span>Gamma</span>
+        <strong id="gamma">--</strong>
+      </div>
+
+      <div class="result-row">
+        <span>Vega</span>
+        <strong id="vega">--</strong>
+      </div>
+
+      <div class="result-row">
+        <span>Theta / 每日</span>
+        <strong id="theta">--</strong>
+      </div>
+
+      <div class="result-row">
+        <span>Rho</span>
+        <strong id="rho">--</strong>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>機率及模型數值</h2>
+
+      <div class="result-row">
+        <span>到期 ITM 機率</span>
+        <strong id="itmProb">--</strong>
+      </div>
+
+      <div class="result-row">
+        <span>d1</span>
+        <strong id="d1Display">--</strong>
+      </div>
+
+      <div class="result-row">
+        <span>d2</span>
+        <strong id="d2Display">--</strong>
+      </div>
+
+      <div class="result-row">
+        <span>內在價值 Intrinsic Value</span>
+        <strong id="intrinsic">--</strong>
+      </div>
+
+      <div class="result-row">
+        <span>時間價值 Time Value</span>
+        <strong id="timeValue">--</strong>
+      </div>
+
+      <p class="muted">
+        N(d1) 通常接近 Delta；N(d2) 可粗略理解為風險中性下到期變 ITM 嘅機率。
+      </p>
+    </div>
   </div>
+
+  <p class="muted" style="margin-top:18px;">
+    注意：此工具使用 Black-Scholes 模型。美股股票期權多數係美式期權，遇到派息、深度價內、臨近除淨日，實際價可能同模型有偏差。
+  </p>
 </div>
 
 <script>
@@ -97,18 +262,9 @@ function setDefaultDates() {
   const todayStr = today.toISOString().split("T")[0];
   document.getElementById("todayDate").value = todayStr;
 
-  const nextYear = new Date(today);
-  nextYear.setFullYear(today.getFullYear() + 1);
-  const nextYearStr = nextYear.toISOString().split("T")[0];
-  document.getElementById("expiryDate").value = nextYearStr;
-}
-
-function normalCDF(x) {
-  return 0.5 * (1 + erf(x / Math.sqrt(2)));
-}
-
-function normalPDF(x) {
-  return Math.exp(-0.5 * x * x) / Math.sqrt(2 * Math.PI);
+  const nextMonth = new Date(today);
+  nextMonth.setMonth(today.getMonth() + 1);
+  document.getElementById("expiryDate").value = nextMonth.toISOString().split("T")[0];
 }
 
 function erf(x) {
@@ -124,87 +280,147 @@ function erf(x) {
 
   const t = 1 / (1 + p * x);
   const y = 1 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
-
   return sign * y;
+}
+
+function normalCDF(x) {
+  return 0.5 * (1 + erf(x / Math.sqrt(2)));
+}
+
+function normalPDF(x) {
+  return Math.exp(-0.5 * x * x) / Math.sqrt(2 * Math.PI);
 }
 
 function calculateDays(startDate, endDate) {
   const start = new Date(startDate);
   const end = new Date(endDate);
+  start.setHours(0,0,0,0);
+  end.setHours(0,0,0,0);
+  return Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+}
 
-  start.setHours(0, 0, 0, 0);
-  end.setHours(0, 0, 0, 0);
+function bsPrice(type, S, K, T, r, sigma) {
+  const d1 = (Math.log(S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * Math.sqrt(T));
+  const d2 = d1 - sigma * Math.sqrt(T);
 
-  const diffMs = end - start;
-  return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  if (type === "call") {
+    return S * normalCDF(d1) - K * Math.exp(-r * T) * normalCDF(d2);
+  } else {
+    return K * Math.exp(-r * T) * normalCDF(-d2) - S * normalCDF(-d1);
+  }
+}
+
+function impliedVolatility(type, marketPrice, S, K, T, r) {
+  let low = 0.0001;
+  let high = 5.0;
+  let mid = 0;
+
+  for (let i = 0; i < 100; i++) {
+    mid = (low + high) / 2;
+    const price = bsPrice(type, S, K, T, r, mid);
+
+    if (price > marketPrice) {
+      high = mid;
+    } else {
+      low = mid;
+    }
+  }
+
+  return mid;
 }
 
 function calculate() {
+  const type = document.getElementById("optionType").value;
   const S = parseFloat(document.getElementById("S").value);
   const K = parseFloat(document.getElementById("K").value);
-  const todayDate = document.getElementById("todayDate").value;
-  const expiryDate = document.getElementById("expiryDate").value;
   const r = parseFloat(document.getElementById("r").value) / 100;
   const sigma = parseFloat(document.getElementById("sigma").value) / 100;
+  const marketPriceInput = document.getElementById("marketPrice").value;
+  const marketPrice = marketPriceInput === "" ? null : parseFloat(marketPriceInput);
 
-  const daysToExpiry = calculateDays(todayDate, expiryDate);
-  const T = daysToExpiry / 365;
+  const todayDate = document.getElementById("todayDate").value;
+  const expiryDate = document.getElementById("expiryDate").value;
+
+  const days = calculateDays(todayDate, expiryDate);
+  const T = days / 365;
 
   if (S <= 0 || K <= 0 || T <= 0 || sigma <= 0) {
-    document.getElementById("result").innerHTML = "請檢查輸入：現價、行使價、到期日、IV 都要有效。";
+    alert("請檢查輸入資料。現價、行使價、到期日、IV 都要有效。");
     return;
   }
 
   const d1 = (Math.log(S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * Math.sqrt(T));
   const d2 = d1 - sigma * Math.sqrt(T);
 
-  const call = S * normalCDF(d1) - K * Math.exp(-r * T) * normalCDF(d2);
-  const put = K * Math.exp(-r * T) * normalCDF(-d2) - S * normalCDF(-d1);
+  const callPrice = bsPrice("call", S, K, T, r, sigma);
+  const putPrice = bsPrice("put", S, K, T, r, sigma);
+  const price = type === "call" ? callPrice : putPrice;
 
-  const callDelta = normalCDF(d1);
-  const putDelta = normalCDF(d1) - 1;
+  let delta, theta, rho, itmProb, intrinsic;
 
-  const itmProbabilityCall = normalCDF(d2);
-  const itmProbabilityPut = normalCDF(-d2);
-
+  const gamma = normalPDF(d1) / (S * sigma * Math.sqrt(T));
   const vega = S * normalPDF(d1) * Math.sqrt(T) / 100;
 
-  const callTheta =
-    (
+  if (type === "call") {
+    delta = normalCDF(d1);
+    theta = (
       -(S * normalPDF(d1) * sigma) / (2 * Math.sqrt(T))
       - r * K * Math.exp(-r * T) * normalCDF(d2)
     ) / 365;
-
-  const putTheta =
-    (
+    rho = K * T * Math.exp(-r * T) * normalCDF(d2) / 100;
+    itmProb = normalCDF(d2);
+    intrinsic = Math.max(S - K, 0);
+  } else {
+    delta = normalCDF(d1) - 1;
+    theta = (
       -(S * normalPDF(d1) * sigma) / (2 * Math.sqrt(T))
       + r * K * Math.exp(-r * T) * normalCDF(-d2)
     ) / 365;
+    rho = -K * T * Math.exp(-r * T) * normalCDF(-d2) / 100;
+    itmProb = normalCDF(-d2);
+    intrinsic = Math.max(K - S, 0);
+  }
 
-  document.getElementById("result").innerHTML = `
-    <strong>剩餘日數：</strong> ${daysToExpiry} 日<br>
-    <strong>年化時間 T：</strong> ${T.toFixed(4)}<br><br>
+  const timeValue = price - intrinsic;
 
-    <strong>Call 理論價：</strong> $${call.toFixed(2)}<br>
-    <strong>Put 理論價：</strong> $${put.toFixed(2)}<br><br>
+  document.getElementById("theoreticalPrice").innerHTML = "$" + price.toFixed(2);
+  document.getElementById("daysDisplay").innerHTML = days + " 日";
+  document.getElementById("tDisplay").innerHTML = T.toFixed(4);
 
-    <strong>Call Delta：</strong> ${callDelta.toFixed(4)}<br>
-    <strong>Put Delta：</strong> ${putDelta.toFixed(4)}<br><br>
+  document.getElementById("delta").innerHTML = delta.toFixed(4);
+  document.getElementById("gamma").innerHTML = gamma.toFixed(4);
+  document.getElementById("vega").innerHTML = "$" + vega.toFixed(4) + " / IV +1%";
+  document.getElementById("theta").innerHTML = "$" + theta.toFixed(4);
+  document.getElementById("rho").innerHTML = "$" + rho.toFixed(4) + " / rate +1%";
 
-    <strong>Call 到期 ITM 機率：</strong> ${(itmProbabilityCall * 100).toFixed(2)}%<br>
-    <strong>Put 到期 ITM 機率：</strong> ${(itmProbabilityPut * 100).toFixed(2)}%<br><br>
+  document.getElementById("itmProb").innerHTML = (itmProb * 100).toFixed(2) + "%";
+  document.getElementById("d1Display").innerHTML = d1.toFixed(4);
+  document.getElementById("d2Display").innerHTML = d2.toFixed(4);
+  document.getElementById("intrinsic").innerHTML = "$" + intrinsic.toFixed(2);
+  document.getElementById("timeValue").innerHTML = "$" + timeValue.toFixed(2);
 
-    <strong>Vega：</strong> $${vega.toFixed(4)} / IV 變動 1%<br>
-    <strong>Call Theta：</strong> $${callTheta.toFixed(4)} / 每日<br>
-    <strong>Put Theta：</strong> $${putTheta.toFixed(4)} / 每日<br><br>
+  if (marketPrice !== null && marketPrice > 0) {
+    const iv = impliedVolatility(type, marketPrice, S, K, T, r);
+    const diff = price - marketPrice;
 
-    d1 = ${d1.toFixed(4)}<br>
-    d2 = ${d2.toFixed(4)}
-  `;
+    document.getElementById("marketPriceDisplay").innerHTML = "$" + marketPrice.toFixed(2);
+    document.getElementById("impliedVol").innerHTML = (iv * 100).toFixed(2) + "%";
+
+    let diffClass = diff >= 0 ? "green" : "red";
+    let diffText = diff >= 0
+      ? "理論價高過市場 $" + diff.toFixed(2)
+      : "理論價低過市場 $" + Math.abs(diff).toFixed(2);
+
+    document.getElementById("priceDiff").innerHTML = `<span class="${diffClass}">${diffText}</span>`;
+  } else {
+    document.getElementById("marketPriceDisplay").innerHTML = "--";
+    document.getElementById("priceDiff").innerHTML = "--";
+    document.getElementById("impliedVol").innerHTML = "--";
+  }
 }
 
 setDefaultDates();
+calculate();
 </script>
-
 </body>
 </html>
