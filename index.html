@@ -11,16 +11,14 @@
       color: #222;
     }
     .box {
-      max-width: 600px;
+      max-width: 650px;
       margin: auto;
       background: white;
       padding: 25px;
       border-radius: 14px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
-    h1 {
-      text-align: center;
-    }
+    h1 { text-align: center; }
     label {
       display: block;
       margin-top: 15px;
@@ -49,7 +47,8 @@
       padding: 18px;
       background: #f0f4ff;
       border-radius: 10px;
-      font-size: 18px;
+      font-size: 17px;
+      line-height: 1.7;
     }
     .small {
       font-size: 13px;
@@ -69,8 +68,11 @@
   <label>行使價 K</label>
   <input id="K" type="number" value="100" step="0.01">
 
-  <label>剩餘時間 T（年，例如 30日 = 30/365 = 0.082）</label>
-  <input id="T" type="number" value="1" step="0.001">
+  <label>今日日期</label>
+  <input id="todayDate" type="date">
+
+  <label>到期日 Expiry Date</label>
+  <input id="expiryDate" type="date">
 
   <label>無風險利率 r（%）</label>
   <input id="r" type="number" value="4.5" step="0.01">
@@ -85,13 +87,28 @@
   </div>
 
   <div class="small">
-    使用 Black-Scholes 模型，只作理論參考，不代表實際成交價。
+    使用 Black-Scholes 模型，只作理論參考，不代表實際成交價。美股期權多數係美式期權，Black-Scholes 係理論近似。
   </div>
 </div>
 
 <script>
+function setDefaultDates() {
+  const today = new Date();
+  const todayStr = today.toISOString().split("T")[0];
+  document.getElementById("todayDate").value = todayStr;
+
+  const nextYear = new Date(today);
+  nextYear.setFullYear(today.getFullYear() + 1);
+  const nextYearStr = nextYear.toISOString().split("T")[0];
+  document.getElementById("expiryDate").value = nextYearStr;
+}
+
 function normalCDF(x) {
   return 0.5 * (1 + erf(x / Math.sqrt(2)));
+}
+
+function normalPDF(x) {
+  return Math.exp(-0.5 * x * x) / Math.sqrt(2 * Math.PI);
 }
 
 function erf(x) {
@@ -111,15 +128,30 @@ function erf(x) {
   return sign * y;
 }
 
+function calculateDays(startDate, endDate) {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  start.setHours(0, 0, 0, 0);
+  end.setHours(0, 0, 0, 0);
+
+  const diffMs = end - start;
+  return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+}
+
 function calculate() {
   const S = parseFloat(document.getElementById("S").value);
   const K = parseFloat(document.getElementById("K").value);
-  const T = parseFloat(document.getElementById("T").value);
+  const todayDate = document.getElementById("todayDate").value;
+  const expiryDate = document.getElementById("expiryDate").value;
   const r = parseFloat(document.getElementById("r").value) / 100;
   const sigma = parseFloat(document.getElementById("sigma").value) / 100;
 
+  const daysToExpiry = calculateDays(todayDate, expiryDate);
+  const T = daysToExpiry / 365;
+
   if (S <= 0 || K <= 0 || T <= 0 || sigma <= 0) {
-    document.getElementById("result").innerHTML = "請輸入有效數字。";
+    document.getElementById("result").innerHTML = "請檢查輸入：現價、行使價、到期日、IV 都要有效。";
     return;
   }
 
@@ -129,13 +161,49 @@ function calculate() {
   const call = S * normalCDF(d1) - K * Math.exp(-r * T) * normalCDF(d2);
   const put = K * Math.exp(-r * T) * normalCDF(-d2) - S * normalCDF(-d1);
 
+  const callDelta = normalCDF(d1);
+  const putDelta = normalCDF(d1) - 1;
+
+  const itmProbabilityCall = normalCDF(d2);
+  const itmProbabilityPut = normalCDF(-d2);
+
+  const vega = S * normalPDF(d1) * Math.sqrt(T) / 100;
+
+  const callTheta =
+    (
+      -(S * normalPDF(d1) * sigma) / (2 * Math.sqrt(T))
+      - r * K * Math.exp(-r * T) * normalCDF(d2)
+    ) / 365;
+
+  const putTheta =
+    (
+      -(S * normalPDF(d1) * sigma) / (2 * Math.sqrt(T))
+      + r * K * Math.exp(-r * T) * normalCDF(-d2)
+    ) / 365;
+
   document.getElementById("result").innerHTML = `
+    <strong>剩餘日數：</strong> ${daysToExpiry} 日<br>
+    <strong>年化時間 T：</strong> ${T.toFixed(4)}<br><br>
+
     <strong>Call 理論價：</strong> $${call.toFixed(2)}<br>
     <strong>Put 理論價：</strong> $${put.toFixed(2)}<br><br>
+
+    <strong>Call Delta：</strong> ${callDelta.toFixed(4)}<br>
+    <strong>Put Delta：</strong> ${putDelta.toFixed(4)}<br><br>
+
+    <strong>Call 到期 ITM 機率：</strong> ${(itmProbabilityCall * 100).toFixed(2)}%<br>
+    <strong>Put 到期 ITM 機率：</strong> ${(itmProbabilityPut * 100).toFixed(2)}%<br><br>
+
+    <strong>Vega：</strong> $${vega.toFixed(4)} / IV 變動 1%<br>
+    <strong>Call Theta：</strong> $${callTheta.toFixed(4)} / 每日<br>
+    <strong>Put Theta：</strong> $${putTheta.toFixed(4)} / 每日<br><br>
+
     d1 = ${d1.toFixed(4)}<br>
     d2 = ${d2.toFixed(4)}
   `;
 }
+
+setDefaultDates();
 </script>
 
 </body>
