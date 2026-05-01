@@ -12,7 +12,7 @@
       margin: 0;
       padding: 24px;
     }
-    .container { max-width: 1100px; margin: auto; }
+    .container { max-width: 1150px; margin: auto; }
     h1 { text-align: center; margin-bottom: 6px; }
     .subtitle { text-align: center; color: #666; margin-bottom: 24px; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
@@ -39,7 +39,6 @@
     .result-row strong { font-size: 16px; text-align: right; }
     .green { color: #087f5b; }
     .red { color: #c92a2a; }
-    .blue { color: #1c7ed6; }
     .muted { color: #666; font-size: 13px; line-height: 1.5; }
     .warning {
       background: #fff4e6; padding: 12px; border-radius: 10px;
@@ -54,7 +53,7 @@
 <body>
 <div class="container">
   <h1>期權估值及 IV 反推工具</h1>
-  <div class="subtitle">Black-Scholes Calculator｜理論價｜Greeks｜反推 IV｜打和價</div>
+  <div class="subtitle">Black-Scholes｜理論價｜Greeks｜反推 IV｜打和價｜股價變動模擬</div>
 
   <div class="grid">
     <div class="card">
@@ -81,16 +80,16 @@
       <label>無風險利率 r（%）</label>
       <input id="r" type="number" value="4.5" step="0.01">
 
-      <label>引伸波幅 IV（%）——用嚟計理論價</label>
+      <label>引伸波幅 IV（%）</label>
       <input id="sigma" type="number" value="50" step="0.01">
 
-      <label>市場期權價 Market Price（可選，用嚟反推 IV 及真實打和價）</label>
+      <label>市場期權價 Market Price（可選）</label>
       <input id="marketPrice" type="number" value="" step="0.01" placeholder="例如 12.35">
 
       <button onclick="calculate()">計算</button>
 
       <div class="warning">
-        貼士：短期期權 / 0DTE 最好用「市場成交價」計打和位，因為 bid/ask spread 同 IV 變化會好大。
+        如果用嚟對比真實交易，市場價建議用 Bid / Ask 中間價。
       </div>
     </div>
 
@@ -109,10 +108,6 @@
 
       <div class="result-row"><span>剩餘日數</span><strong id="daysDisplay">--</strong></div>
       <div class="result-row"><span>年化時間 T</span><strong id="tDisplay">--</strong></div>
-
-      <div class="warning">
-        Call 打和位 = Strike + 期權價；Put 打和位 = Strike - 期權價。
-      </div>
     </div>
   </div>
 
@@ -133,10 +128,30 @@
       <div class="result-row"><span>d2</span><strong id="d2Display">--</strong></div>
       <div class="result-row"><span>內在價值 Intrinsic Value</span><strong id="intrinsic">--</strong></div>
       <div class="result-row"><span>時間價值 Time Value</span><strong id="timeValue">--</strong></div>
+    </div>
+  </div>
 
-      <p class="muted">
-        N(d1) 通常接近 Delta；N(d2) 可粗略理解為風險中性下到期變 ITM 嘅機率。
-      </p>
+  <div class="card" style="margin-top:18px;">
+    <h2>股價變動模擬</h2>
+
+    <label>模擬日期</label>
+    <input id="scenarioDate" type="date">
+
+    <label>假設股價變動百分比（%）</label>
+    <input id="scenarioMovePct" type="number" value="10" step="0.1" placeholder="例如 3、5.5、-10">
+
+    <button onclick="calculate()">更新模擬</button>
+
+    <div class="result-row"><span>模擬後股價</span><strong id="scenarioStockPrice">--</strong></div>
+    <div class="result-row"><span>模擬日期至到期剩餘日數</span><strong id="scenarioDays">--</strong></div>
+    <div class="result-row"><span>模擬後期權理論價</span><strong id="scenarioOptionPrice">--</strong></div>
+    <div class="result-row"><span>模擬後內在價值</span><strong id="scenarioIntrinsic">--</strong></div>
+    <div class="result-row"><span>模擬後時間價值</span><strong id="scenarioTimeValue">--</strong></div>
+    <div class="result-row"><span>相對今日理論價變化</span><strong id="scenarioChangeTheo">--</strong></div>
+    <div class="result-row"><span>相對市場買入價變化</span><strong id="scenarioChangeMarket">--</strong></div>
+
+    <div class="warning">
+      呢個模擬會假設 IV 同利率不變，只改股價同剩餘時間。現實中股價大升大跌時，IV 可能同時變，實際期權價會有差異。
     </div>
   </div>
 
@@ -153,7 +168,12 @@ function setDefaultDates() {
 
   const nextWeek = new Date(today);
   nextWeek.setDate(today.getDate() + 7);
-  document.getElementById("expiryDate").value = nextWeek.toISOString().split("T")[0];
+  const nextWeekStr = nextWeek.toISOString().split("T")[0];
+  document.getElementById("expiryDate").value = nextWeekStr;
+
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+  document.getElementById("scenarioDate").value = tomorrow.toISOString().split("T")[0];
 }
 
 function erf(x) {
@@ -183,6 +203,10 @@ function calculateDays(startDate, endDate) {
 }
 
 function bsPrice(type, S, K, T, r, sigma) {
+  if (T <= 0) {
+    return type === "call" ? Math.max(S - K, 0) : Math.max(K - S, 0);
+  }
+
   const d1 = (Math.log(S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * Math.sqrt(T));
   const d2 = d1 - sigma * Math.sqrt(T);
 
@@ -201,12 +225,14 @@ function impliedVolatility(type, marketPrice, S, K, T, r) {
   for (let i = 0; i < 100; i++) {
     mid = (low + high) / 2;
     const price = bsPrice(type, S, K, T, r, mid);
-
     if (price > marketPrice) high = mid;
     else low = mid;
   }
-
   return mid;
+}
+
+function intrinsicValue(type, S, K) {
+  return type === "call" ? Math.max(S - K, 0) : Math.max(K - S, 0);
 }
 
 function calculate() {
@@ -234,8 +260,7 @@ function calculate() {
 
   const price = bsPrice(type, S, K, T, r, sigma);
 
-  let delta, theta, rho, itmProb, intrinsic;
-
+  let delta, theta, rho, itmProb;
   const gamma = normalPDF(d1) / (S * sigma * Math.sqrt(T));
   const vega = S * normalPDF(d1) * Math.sqrt(T) / 100;
 
@@ -247,7 +272,6 @@ function calculate() {
     ) / 365;
     rho = K * T * Math.exp(-r * T) * normalCDF(d2) / 100;
     itmProb = normalCDF(d2);
-    intrinsic = Math.max(S - K, 0);
   } else {
     delta = normalCDF(d1) - 1;
     theta = (
@@ -256,9 +280,9 @@ function calculate() {
     ) / 365;
     rho = -K * T * Math.exp(-r * T) * normalCDF(-d2) / 100;
     itmProb = normalCDF(-d2);
-    intrinsic = Math.max(K - S, 0);
   }
 
+  const intrinsic = intrinsicValue(type, S, K);
   const timeValue = price - intrinsic;
 
   let breakevenTheo, breakevenTheoPct;
@@ -328,6 +352,49 @@ function calculate() {
     document.getElementById("impliedVol").innerHTML = "--";
     document.getElementById("breakevenMarket").innerHTML = "--";
     document.getElementById("breakevenMarketPct").innerHTML = "--";
+  }
+
+  calculateScenario(type, S, K, r, sigma, price, marketPrice, expiryDate);
+}
+
+function calculateScenario(type, S, K, r, sigma, currentTheoPrice, marketPrice, expiryDate) {
+  const scenarioDate = document.getElementById("scenarioDate").value;
+  const movePct = parseFloat(document.getElementById("scenarioMovePct").value);
+
+  if (!scenarioDate || isNaN(movePct)) {
+    return;
+  }
+
+  const scenarioDays = calculateDays(scenarioDate, expiryDate);
+  const scenarioT = Math.max(scenarioDays, 0) / 365;
+
+  const newS = S * (1 + movePct / 100);
+  const scenarioPrice = bsPrice(type, newS, K, scenarioT, r, sigma);
+  const scenarioIntrinsic = intrinsicValue(type, newS, K);
+  const scenarioTimeValue = scenarioPrice - scenarioIntrinsic;
+
+  const changeTheo = scenarioPrice - currentTheoPrice;
+  const changeTheoPct = (changeTheo / currentTheoPrice) * 100;
+
+  document.getElementById("scenarioStockPrice").innerHTML = "$" + newS.toFixed(2);
+  document.getElementById("scenarioDays").innerHTML = scenarioDays + " 日";
+  document.getElementById("scenarioOptionPrice").innerHTML = "$" + scenarioPrice.toFixed(2);
+  document.getElementById("scenarioIntrinsic").innerHTML = "$" + scenarioIntrinsic.toFixed(2);
+  document.getElementById("scenarioTimeValue").innerHTML = "$" + scenarioTimeValue.toFixed(2);
+
+  document.getElementById("scenarioChangeTheo").innerHTML =
+    (changeTheo >= 0 ? "+" : "") + "$" + changeTheo.toFixed(2) +
+    " / " + (changeTheoPct >= 0 ? "+" : "") + changeTheoPct.toFixed(2) + "%";
+
+  if (marketPrice !== null && marketPrice > 0) {
+    const changeMarket = scenarioPrice - marketPrice;
+    const changeMarketPct = (changeMarket / marketPrice) * 100;
+
+    document.getElementById("scenarioChangeMarket").innerHTML =
+      (changeMarket >= 0 ? "+" : "") + "$" + changeMarket.toFixed(2) +
+      " / " + (changeMarketPct >= 0 ? "+" : "") + changeMarketPct.toFixed(2) + "%";
+  } else {
+    document.getElementById("scenarioChangeMarket").innerHTML = "--";
   }
 }
 
