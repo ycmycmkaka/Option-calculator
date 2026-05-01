@@ -12,95 +12,41 @@
       margin: 0;
       padding: 24px;
     }
-    .container {
-      max-width: 1100px;
-      margin: auto;
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 6px;
-    }
-    .subtitle {
-      text-align: center;
-      color: #666;
-      margin-bottom: 24px;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 18px;
-    }
+    .container { max-width: 1100px; margin: auto; }
+    h1 { text-align: center; margin-bottom: 6px; }
+    .subtitle { text-align: center; color: #666; margin-bottom: 24px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
     .card {
       background: white;
       border-radius: 14px;
       padding: 20px;
       box-shadow: 0 4px 14px rgba(0,0,0,0.07);
     }
-    label {
-      display: block;
-      margin-top: 13px;
-      font-weight: bold;
-      font-size: 14px;
-    }
+    label { display: block; margin-top: 13px; font-weight: bold; font-size: 14px; }
     input, select {
-      width: 100%;
-      padding: 10px;
-      margin-top: 6px;
-      font-size: 16px;
-      box-sizing: border-box;
-      border: 1px solid #ccc;
-      border-radius: 8px;
+      width: 100%; padding: 10px; margin-top: 6px; font-size: 16px;
+      box-sizing: border-box; border: 1px solid #ccc; border-radius: 8px;
     }
     button {
-      width: 100%;
-      margin-top: 20px;
-      padding: 13px;
-      font-size: 17px;
-      background: #111827;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    button:hover {
-      background: #000;
-    }
-    .result-main {
-      font-size: 28px;
-      font-weight: bold;
-      margin: 8px 0 18px;
+      width: 100%; margin-top: 20px; padding: 13px; font-size: 17px;
+      background: #111827; color: white; border: none; border-radius: 10px;
+      cursor: pointer; font-weight: bold;
     }
     .result-row {
-      display: flex;
-      justify-content: space-between;
-      border-bottom: 1px solid #eee;
-      padding: 9px 0;
-      font-size: 15px;
+      display: flex; justify-content: space-between; gap: 12px;
+      border-bottom: 1px solid #eee; padding: 9px 0; font-size: 15px;
     }
-    .result-row strong {
-      font-size: 16px;
-    }
+    .result-row strong { font-size: 16px; text-align: right; }
     .green { color: #087f5b; }
     .red { color: #c92a2a; }
     .blue { color: #1c7ed6; }
-    .muted {
-      color: #666;
-      font-size: 13px;
-      line-height: 1.5;
-    }
+    .muted { color: #666; font-size: 13px; line-height: 1.5; }
     .warning {
-      background: #fff4e6;
-      padding: 12px;
-      border-radius: 10px;
-      margin-top: 15px;
-      font-size: 14px;
-      color: #7c4a00;
+      background: #fff4e6; padding: 12px; border-radius: 10px;
+      margin-top: 15px; font-size: 14px; color: #7c4a00;
     }
     @media (max-width: 800px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
+      .grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -108,7 +54,7 @@
 <body>
 <div class="container">
   <h1>期權估值及 IV 反推工具</h1>
-  <div class="subtitle">Black-Scholes Calculator｜理論價｜Greeks｜反推引伸波幅</div>
+  <div class="subtitle">Black-Scholes Calculator｜理論價｜Greeks｜反推 IV｜打和價</div>
 
   <div class="grid">
     <div class="card">
@@ -138,51 +84,34 @@
       <label>引伸波幅 IV（%）——用嚟計理論價</label>
       <input id="sigma" type="number" value="50" step="0.01">
 
-      <label>市場期權價 Market Price（可選，用嚟反推 IV）</label>
+      <label>市場期權價 Market Price（可選，用嚟反推 IV 及真實打和價）</label>
       <input id="marketPrice" type="number" value="" step="0.01" placeholder="例如 12.35">
 
       <button onclick="calculate()">計算</button>
 
       <div class="warning">
-        貼士：如果你想同富途 / IBKR / Yahoo Finance 價格對比，市場價最好用 Bid / Ask 中間價。
+        貼士：短期期權 / 0DTE 最好用「市場成交價」計打和位，因為 bid/ask spread 同 IV 變化會好大。
       </div>
     </div>
 
     <div class="card">
       <h2>主要結果</h2>
 
-      <div class="result-row">
-        <span>理論價</span>
-        <strong id="theoreticalPrice">$--</strong>
-      </div>
+      <div class="result-row"><span>理論價</span><strong id="theoreticalPrice">$--</strong></div>
+      <div class="result-row"><span>市場價</span><strong id="marketPriceDisplay">--</strong></div>
+      <div class="result-row"><span>理論價 vs 市場價</span><strong id="priceDiff">--</strong></div>
+      <div class="result-row"><span>反推 IV</span><strong id="impliedVol">--</strong></div>
 
-      <div class="result-row">
-        <span>市場價</span>
-        <strong id="marketPriceDisplay">--</strong>
-      </div>
+      <div class="result-row"><span>理論打和股價</span><strong id="breakevenTheo">--</strong></div>
+      <div class="result-row"><span>理論打和升/跌幅</span><strong id="breakevenTheoPct">--</strong></div>
+      <div class="result-row"><span>市場價打和股價</span><strong id="breakevenMarket">--</strong></div>
+      <div class="result-row"><span>市場價打和升/跌幅</span><strong id="breakevenMarketPct">--</strong></div>
 
-      <div class="result-row">
-        <span>理論價 vs 市場價</span>
-        <strong id="priceDiff">--</strong>
-      </div>
-
-      <div class="result-row">
-        <span>反推 IV</span>
-        <strong id="impliedVol">--</strong>
-      </div>
-
-      <div class="result-row">
-        <span>剩餘日數</span>
-        <strong id="daysDisplay">--</strong>
-      </div>
-
-      <div class="result-row">
-        <span>年化時間 T</span>
-        <strong id="tDisplay">--</strong>
-      </div>
+      <div class="result-row"><span>剩餘日數</span><strong id="daysDisplay">--</strong></div>
+      <div class="result-row"><span>年化時間 T</span><strong id="tDisplay">--</strong></div>
 
       <div class="warning">
-        如果「反推 IV」明顯高過你輸入嘅 IV，代表市場期權價比你模型計出嚟更貴。
+        Call 打和位 = Strike + 期權價；Put 打和位 = Strike - 期權價。
       </div>
     </div>
   </div>
@@ -190,60 +119,20 @@
   <div class="grid" style="margin-top:18px;">
     <div class="card">
       <h2>Greeks</h2>
-
-      <div class="result-row">
-        <span>Delta</span>
-        <strong id="delta">--</strong>
-      </div>
-
-      <div class="result-row">
-        <span>Gamma</span>
-        <strong id="gamma">--</strong>
-      </div>
-
-      <div class="result-row">
-        <span>Vega</span>
-        <strong id="vega">--</strong>
-      </div>
-
-      <div class="result-row">
-        <span>Theta / 每日</span>
-        <strong id="theta">--</strong>
-      </div>
-
-      <div class="result-row">
-        <span>Rho</span>
-        <strong id="rho">--</strong>
-      </div>
+      <div class="result-row"><span>Delta</span><strong id="delta">--</strong></div>
+      <div class="result-row"><span>Gamma</span><strong id="gamma">--</strong></div>
+      <div class="result-row"><span>Vega</span><strong id="vega">--</strong></div>
+      <div class="result-row"><span>Theta / 每日</span><strong id="theta">--</strong></div>
+      <div class="result-row"><span>Rho</span><strong id="rho">--</strong></div>
     </div>
 
     <div class="card">
       <h2>機率及模型數值</h2>
-
-      <div class="result-row">
-        <span>到期 ITM 機率</span>
-        <strong id="itmProb">--</strong>
-      </div>
-
-      <div class="result-row">
-        <span>d1</span>
-        <strong id="d1Display">--</strong>
-      </div>
-
-      <div class="result-row">
-        <span>d2</span>
-        <strong id="d2Display">--</strong>
-      </div>
-
-      <div class="result-row">
-        <span>內在價值 Intrinsic Value</span>
-        <strong id="intrinsic">--</strong>
-      </div>
-
-      <div class="result-row">
-        <span>時間價值 Time Value</span>
-        <strong id="timeValue">--</strong>
-      </div>
+      <div class="result-row"><span>到期 ITM 機率</span><strong id="itmProb">--</strong></div>
+      <div class="result-row"><span>d1</span><strong id="d1Display">--</strong></div>
+      <div class="result-row"><span>d2</span><strong id="d2Display">--</strong></div>
+      <div class="result-row"><span>內在價值 Intrinsic Value</span><strong id="intrinsic">--</strong></div>
+      <div class="result-row"><span>時間價值 Time Value</span><strong id="timeValue">--</strong></div>
 
       <p class="muted">
         N(d1) 通常接近 Delta；N(d2) 可粗略理解為風險中性下到期變 ITM 嘅機率。
@@ -262,22 +151,16 @@ function setDefaultDates() {
   const todayStr = today.toISOString().split("T")[0];
   document.getElementById("todayDate").value = todayStr;
 
-  const nextMonth = new Date(today);
-  nextMonth.setMonth(today.getMonth() + 1);
-  document.getElementById("expiryDate").value = nextMonth.toISOString().split("T")[0];
+  const nextWeek = new Date(today);
+  nextWeek.setDate(today.getDate() + 7);
+  document.getElementById("expiryDate").value = nextWeek.toISOString().split("T")[0];
 }
 
 function erf(x) {
   const sign = x >= 0 ? 1 : -1;
   x = Math.abs(x);
-
-  const a1 = 0.254829592;
-  const a2 = -0.284496736;
-  const a3 = 1.421413741;
-  const a4 = -1.453152027;
-  const a5 = 1.061405429;
-  const p = 0.3275911;
-
+  const a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741;
+  const a4 = -1.453152027, a5 = 1.061405429, p = 0.3275911;
   const t = 1 / (1 + p * x);
   const y = 1 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
   return sign * y;
@@ -319,11 +202,8 @@ function impliedVolatility(type, marketPrice, S, K, T, r) {
     mid = (low + high) / 2;
     const price = bsPrice(type, S, K, T, r, mid);
 
-    if (price > marketPrice) {
-      high = mid;
-    } else {
-      low = mid;
-    }
+    if (price > marketPrice) high = mid;
+    else low = mid;
   }
 
   return mid;
@@ -352,9 +232,7 @@ function calculate() {
   const d1 = (Math.log(S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * Math.sqrt(T));
   const d2 = d1 - sigma * Math.sqrt(T);
 
-  const callPrice = bsPrice("call", S, K, T, r, sigma);
-  const putPrice = bsPrice("put", S, K, T, r, sigma);
-  const price = type === "call" ? callPrice : putPrice;
+  const price = bsPrice(type, S, K, T, r, sigma);
 
   let delta, theta, rho, itmProb, intrinsic;
 
@@ -383,6 +261,16 @@ function calculate() {
 
   const timeValue = price - intrinsic;
 
+  let breakevenTheo, breakevenTheoPct;
+
+  if (type === "call") {
+    breakevenTheo = K + price;
+    breakevenTheoPct = ((breakevenTheo - S) / S) * 100;
+  } else {
+    breakevenTheo = K - price;
+    breakevenTheoPct = ((S - breakevenTheo) / S) * 100;
+  }
+
   document.getElementById("theoreticalPrice").innerHTML = "$" + price.toFixed(2);
   document.getElementById("daysDisplay").innerHTML = days + " 日";
   document.getElementById("tDisplay").innerHTML = T.toFixed(4);
@@ -399,23 +287,47 @@ function calculate() {
   document.getElementById("intrinsic").innerHTML = "$" + intrinsic.toFixed(2);
   document.getElementById("timeValue").innerHTML = "$" + timeValue.toFixed(2);
 
+  document.getElementById("breakevenTheo").innerHTML = "$" + breakevenTheo.toFixed(2);
+  document.getElementById("breakevenTheoPct").innerHTML =
+    type === "call"
+      ? "正股要升 " + breakevenTheoPct.toFixed(2) + "%"
+      : "正股要跌 " + breakevenTheoPct.toFixed(2) + "%";
+
   if (marketPrice !== null && marketPrice > 0) {
     const iv = impliedVolatility(type, marketPrice, S, K, T, r);
     const diff = price - marketPrice;
 
+    let breakevenMarket, breakevenMarketPct;
+
+    if (type === "call") {
+      breakevenMarket = K + marketPrice;
+      breakevenMarketPct = ((breakevenMarket - S) / S) * 100;
+    } else {
+      breakevenMarket = K - marketPrice;
+      breakevenMarketPct = ((S - breakevenMarket) / S) * 100;
+    }
+
     document.getElementById("marketPriceDisplay").innerHTML = "$" + marketPrice.toFixed(2);
     document.getElementById("impliedVol").innerHTML = (iv * 100).toFixed(2) + "%";
 
-    let diffClass = diff >= 0 ? "green" : "red";
-    let diffText = diff >= 0
+    const diffClass = diff >= 0 ? "green" : "red";
+    const diffText = diff >= 0
       ? "理論價高過市場 $" + diff.toFixed(2)
       : "理論價低過市場 $" + Math.abs(diff).toFixed(2);
 
     document.getElementById("priceDiff").innerHTML = `<span class="${diffClass}">${diffText}</span>`;
+
+    document.getElementById("breakevenMarket").innerHTML = "$" + breakevenMarket.toFixed(2);
+    document.getElementById("breakevenMarketPct").innerHTML =
+      type === "call"
+        ? "正股要升 " + breakevenMarketPct.toFixed(2) + "%"
+        : "正股要跌 " + breakevenMarketPct.toFixed(2) + "%";
   } else {
     document.getElementById("marketPriceDisplay").innerHTML = "--";
     document.getElementById("priceDiff").innerHTML = "--";
     document.getElementById("impliedVol").innerHTML = "--";
+    document.getElementById("breakevenMarket").innerHTML = "--";
+    document.getElementById("breakevenMarketPct").innerHTML = "--";
   }
 }
 
