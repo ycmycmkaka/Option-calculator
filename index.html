@@ -24,25 +24,45 @@
     }
     label { display: block; margin-top: 13px; font-weight: bold; font-size: 14px; }
     input, select {
-      width: 100%; padding: 10px; margin-top: 6px; font-size: 16px;
-      box-sizing: border-box; border: 1px solid #ccc; border-radius: 8px;
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      font-size: 16px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 8px;
     }
     button {
-      width: 100%; margin-top: 20px; padding: 13px; font-size: 17px;
-      background: #111827; color: white; border: none; border-radius: 10px;
-      cursor: pointer; font-weight: bold;
+      width: 100%;
+      margin-top: 20px;
+      padding: 13px;
+      font-size: 17px;
+      background: #111827;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
     }
     .result-row {
-      display: flex; justify-content: space-between; gap: 12px;
-      border-bottom: 1px solid #eee; padding: 9px 0; font-size: 15px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid #eee;
+      padding: 9px 0;
+      font-size: 15px;
     }
     .result-row strong { font-size: 16px; text-align: right; }
     .green { color: #087f5b; }
     .red { color: #c92a2a; }
     .muted { color: #666; font-size: 13px; line-height: 1.5; }
     .warning {
-      background: #fff4e6; padding: 12px; border-radius: 10px;
-      margin-top: 15px; font-size: 14px; color: #7c4a00;
+      background: #fff4e6;
+      padding: 12px;
+      border-radius: 10px;
+      margin-top: 15px;
+      font-size: 14px;
+      color: #7c4a00;
     }
     @media (max-width: 800px) {
       .grid { grid-template-columns: 1fr; }
@@ -53,7 +73,7 @@
 <body>
 <div class="container">
   <h1>期權估值及 IV 反推工具</h1>
-  <div class="subtitle">Black-Scholes｜理論價｜Greeks｜反推 IV｜打和價｜股價變動模擬</div>
+  <div class="subtitle">Black-Scholes｜理論價｜Greeks｜反推 IV｜打和價｜即日到期時間值</div>
 
   <div class="grid">
     <div class="card">
@@ -71,11 +91,14 @@
       <label>行使價 K</label>
       <input id="K" type="number" value="100" step="0.01">
 
-      <label>今日日期</label>
-      <input id="todayDate" type="date">
+      <label>現在日期及時間</label>
+      <input id="todayDateTime" type="datetime-local">
 
       <label>到期日</label>
       <input id="expiryDate" type="date">
+
+      <label>到期時間（美股通常 16:00）</label>
+      <input id="expiryTime" type="time" value="16:00">
 
       <label>無風險利率 r（%）</label>
       <input id="r" type="number" value="4.5" step="0.01">
@@ -89,7 +112,7 @@
       <button onclick="calculate()">計算</button>
 
       <div class="warning">
-        如果用嚟對比真實交易，市場價建議用 Bid / Ask 中間價。
+        到期日當日朝早都仲有時間值，所以今版會用「小時」計剩餘時間。
       </div>
     </div>
 
@@ -106,7 +129,7 @@
       <div class="result-row"><span>市場價打和股價</span><strong id="breakevenMarket">--</strong></div>
       <div class="result-row"><span>市場價打和升/跌幅</span><strong id="breakevenMarketPct">--</strong></div>
 
-      <div class="result-row"><span>剩餘日數</span><strong id="daysDisplay">--</strong></div>
+      <div class="result-row"><span>剩餘時間</span><strong id="daysDisplay">--</strong></div>
       <div class="result-row"><span>年化時間 T</span><strong id="tDisplay">--</strong></div>
     </div>
   </div>
@@ -134,8 +157,8 @@
   <div class="card" style="margin-top:18px;">
     <h2>股價變動模擬</h2>
 
-    <label>模擬日期</label>
-    <input id="scenarioDate" type="date">
+    <label>模擬日期及時間</label>
+    <input id="scenarioDateTime" type="datetime-local">
 
     <label>假設股價變動百分比（%）</label>
     <input id="scenarioMovePct" type="number" value="10" step="0.1" placeholder="例如 3、5.5、-10">
@@ -143,7 +166,7 @@
     <button onclick="calculate()">更新模擬</button>
 
     <div class="result-row"><span>模擬後股價</span><strong id="scenarioStockPrice">--</strong></div>
-    <div class="result-row"><span>模擬日期至到期剩餘日數</span><strong id="scenarioDays">--</strong></div>
+    <div class="result-row"><span>模擬日期至到期剩餘時間</span><strong id="scenarioDays">--</strong></div>
     <div class="result-row"><span>模擬後期權理論價</span><strong id="scenarioOptionPrice">--</strong></div>
     <div class="result-row"><span>模擬後內在價值</span><strong id="scenarioIntrinsic">--</strong></div>
     <div class="result-row"><span>模擬後時間價值</span><strong id="scenarioTimeValue">--</strong></div>
@@ -151,7 +174,7 @@
     <div class="result-row"><span>相對市場買入價變化</span><strong id="scenarioChangeMarket">--</strong></div>
 
     <div class="warning">
-      呢個模擬會假設 IV 同利率不變，只改股價同剩餘時間。現實中股價大升大跌時，IV 可能同時變，實際期權價會有差異。
+      模擬假設 IV 同利率不變。現實中股價大升大跌時，IV 可能一齊變。
     </div>
   </div>
 
@@ -161,19 +184,32 @@
 </div>
 
 <script>
+function pad(num) {
+  return String(num).padStart(2, "0");
+}
+
+function toDateTimeLocalValue(date) {
+  return (
+    date.getFullYear() + "-" +
+    pad(date.getMonth() + 1) + "-" +
+    pad(date.getDate()) + "T" +
+    pad(date.getHours()) + ":" +
+    pad(date.getMinutes())
+  );
+}
+
 function setDefaultDates() {
-  const today = new Date();
-  const todayStr = today.toISOString().split("T")[0];
-  document.getElementById("todayDate").value = todayStr;
+  const now = new Date();
+  document.getElementById("todayDateTime").value = toDateTimeLocalValue(now);
 
-  const nextWeek = new Date(today);
-  nextWeek.setDate(today.getDate() + 7);
-  const nextWeekStr = nextWeek.toISOString().split("T")[0];
-  document.getElementById("expiryDate").value = nextWeekStr;
+  const expiry = new Date(now);
+  expiry.setDate(now.getDate() + 7);
+  document.getElementById("expiryDate").value =
+    expiry.getFullYear() + "-" + pad(expiry.getMonth() + 1) + "-" + pad(expiry.getDate());
 
-  const tomorrow = new Date(today);
-  tomorrow.setDate(today.getDate() + 1);
-  document.getElementById("scenarioDate").value = tomorrow.toISOString().split("T")[0];
+  const tomorrow = new Date(now);
+  tomorrow.setDate(now.getDate() + 1);
+  document.getElementById("scenarioDateTime").value = toDateTimeLocalValue(tomorrow);
 }
 
 function erf(x) {
@@ -194,17 +230,36 @@ function normalPDF(x) {
   return Math.exp(-0.5 * x * x) / Math.sqrt(2 * Math.PI);
 }
 
-function calculateDays(startDate, endDate) {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  start.setHours(0,0,0,0);
-  end.setHours(0,0,0,0);
-  return Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+function calculateTimeToExpiry(startDateTime, expiryDate, expiryTime) {
+  const start = new Date(startDateTime);
+  const expiry = new Date(expiryDate + "T" + expiryTime);
+
+  const diffMs = expiry - start;
+  const diffHours = Math.max(diffMs / (1000 * 60 * 60), 0);
+  const diffDays = diffHours / 24;
+  const T = diffHours / (365 * 24);
+
+  return {
+    hours: diffHours,
+    days: diffDays,
+    T: T
+  };
+}
+
+function formatTimeLeft(hours) {
+  if (hours <= 0) return "0 小時";
+  const days = Math.floor(hours / 24);
+  const remainHours = hours - days * 24;
+
+  if (days >= 1) {
+    return days + " 日 " + remainHours.toFixed(2) + " 小時";
+  }
+  return hours.toFixed(2) + " 小時";
 }
 
 function bsPrice(type, S, K, T, r, sigma) {
   if (T <= 0) {
-    return type === "call" ? Math.max(S - K, 0) : Math.max(K - S, 0);
+    return intrinsicValue(type, S, K);
   }
 
   const d1 = (Math.log(S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * Math.sqrt(T));
@@ -218,21 +273,28 @@ function bsPrice(type, S, K, T, r, sigma) {
 }
 
 function impliedVolatility(type, marketPrice, S, K, T, r) {
+  if (T <= 0) return null;
+
   let low = 0.0001;
-  let high = 5.0;
+  let high = 10.0;
   let mid = 0;
 
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 120; i++) {
     mid = (low + high) / 2;
     const price = bsPrice(type, S, K, T, r, mid);
     if (price > marketPrice) high = mid;
     else low = mid;
   }
+
   return mid;
 }
 
 function intrinsicValue(type, S, K) {
   return type === "call" ? Math.max(S - K, 0) : Math.max(K - S, 0);
+}
+
+function setText(id, value) {
+  document.getElementById(id).innerHTML = value;
 }
 
 function calculate() {
@@ -241,49 +303,53 @@ function calculate() {
   const K = parseFloat(document.getElementById("K").value);
   const r = parseFloat(document.getElementById("r").value) / 100;
   const sigma = parseFloat(document.getElementById("sigma").value) / 100;
+
   const marketPriceInput = document.getElementById("marketPrice").value;
   const marketPrice = marketPriceInput === "" ? null : parseFloat(marketPriceInput);
 
-  const todayDate = document.getElementById("todayDate").value;
+  const todayDateTime = document.getElementById("todayDateTime").value;
   const expiryDate = document.getElementById("expiryDate").value;
+  const expiryTime = document.getElementById("expiryTime").value;
 
-  const days = calculateDays(todayDate, expiryDate);
-  const T = days / 365;
+  const timeData = calculateTimeToExpiry(todayDateTime, expiryDate, expiryTime);
+  const T = timeData.T;
 
-  if (S <= 0 || K <= 0 || T <= 0 || sigma <= 0) {
-    alert("請檢查輸入資料。現價、行使價、到期日、IV 都要有效。");
+  if (S <= 0 || K <= 0 || sigma <= 0 || !todayDateTime || !expiryDate || !expiryTime) {
+    alert("請檢查輸入資料。現價、行使價、日期時間、IV 都要有效。");
     return;
   }
 
-  const d1 = (Math.log(S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * Math.sqrt(T));
-  const d2 = d1 - sigma * Math.sqrt(T);
-
   const price = bsPrice(type, S, K, T, r, sigma);
-
-  let delta, theta, rho, itmProb;
-  const gamma = normalPDF(d1) / (S * sigma * Math.sqrt(T));
-  const vega = S * normalPDF(d1) * Math.sqrt(T) / 100;
-
-  if (type === "call") {
-    delta = normalCDF(d1);
-    theta = (
-      -(S * normalPDF(d1) * sigma) / (2 * Math.sqrt(T))
-      - r * K * Math.exp(-r * T) * normalCDF(d2)
-    ) / 365;
-    rho = K * T * Math.exp(-r * T) * normalCDF(d2) / 100;
-    itmProb = normalCDF(d2);
-  } else {
-    delta = normalCDF(d1) - 1;
-    theta = (
-      -(S * normalPDF(d1) * sigma) / (2 * Math.sqrt(T))
-      + r * K * Math.exp(-r * T) * normalCDF(-d2)
-    ) / 365;
-    rho = -K * T * Math.exp(-r * T) * normalCDF(-d2) / 100;
-    itmProb = normalCDF(-d2);
-  }
-
   const intrinsic = intrinsicValue(type, S, K);
   const timeValue = price - intrinsic;
+
+  let d1 = null, d2 = null, delta = null, gamma = null, vega = null, theta = null, rho = null, itmProb = null;
+
+  if (T > 0) {
+    d1 = (Math.log(S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * Math.sqrt(T));
+    d2 = d1 - sigma * Math.sqrt(T);
+
+    gamma = normalPDF(d1) / (S * sigma * Math.sqrt(T));
+    vega = S * normalPDF(d1) * Math.sqrt(T) / 100;
+
+    if (type === "call") {
+      delta = normalCDF(d1);
+      theta = (
+        -(S * normalPDF(d1) * sigma) / (2 * Math.sqrt(T))
+        - r * K * Math.exp(-r * T) * normalCDF(d2)
+      ) / 365;
+      rho = K * T * Math.exp(-r * T) * normalCDF(d2) / 100;
+      itmProb = normalCDF(d2);
+    } else {
+      delta = normalCDF(d1) - 1;
+      theta = (
+        -(S * normalPDF(d1) * sigma) / (2 * Math.sqrt(T))
+        + r * K * Math.exp(-r * T) * normalCDF(-d2)
+      ) / 365;
+      rho = -K * T * Math.exp(-r * T) * normalCDF(-d2) / 100;
+      itmProb = normalCDF(-d2);
+    }
+  }
 
   let breakevenTheo, breakevenTheoPct;
 
@@ -295,27 +361,29 @@ function calculate() {
     breakevenTheoPct = ((S - breakevenTheo) / S) * 100;
   }
 
-  document.getElementById("theoreticalPrice").innerHTML = "$" + price.toFixed(2);
-  document.getElementById("daysDisplay").innerHTML = days + " 日";
-  document.getElementById("tDisplay").innerHTML = T.toFixed(4);
+  setText("theoreticalPrice", "$" + price.toFixed(2));
+  setText("daysDisplay", formatTimeLeft(timeData.hours));
+  setText("tDisplay", T.toFixed(6));
 
-  document.getElementById("delta").innerHTML = delta.toFixed(4);
-  document.getElementById("gamma").innerHTML = gamma.toFixed(4);
-  document.getElementById("vega").innerHTML = "$" + vega.toFixed(4) + " / IV +1%";
-  document.getElementById("theta").innerHTML = "$" + theta.toFixed(4);
-  document.getElementById("rho").innerHTML = "$" + rho.toFixed(4) + " / rate +1%";
+  setText("delta", delta === null ? "--" : delta.toFixed(4));
+  setText("gamma", gamma === null ? "--" : gamma.toFixed(4));
+  setText("vega", vega === null ? "--" : "$" + vega.toFixed(4) + " / IV +1%");
+  setText("theta", theta === null ? "--" : "$" + theta.toFixed(4));
+  setText("rho", rho === null ? "--" : "$" + rho.toFixed(4) + " / rate +1%");
 
-  document.getElementById("itmProb").innerHTML = (itmProb * 100).toFixed(2) + "%";
-  document.getElementById("d1Display").innerHTML = d1.toFixed(4);
-  document.getElementById("d2Display").innerHTML = d2.toFixed(4);
-  document.getElementById("intrinsic").innerHTML = "$" + intrinsic.toFixed(2);
-  document.getElementById("timeValue").innerHTML = "$" + timeValue.toFixed(2);
+  setText("itmProb", itmProb === null ? "--" : (itmProb * 100).toFixed(2) + "%");
+  setText("d1Display", d1 === null ? "--" : d1.toFixed(4));
+  setText("d2Display", d2 === null ? "--" : d2.toFixed(4));
+  setText("intrinsic", "$" + intrinsic.toFixed(2));
+  setText("timeValue", "$" + timeValue.toFixed(2));
 
-  document.getElementById("breakevenTheo").innerHTML = "$" + breakevenTheo.toFixed(2);
-  document.getElementById("breakevenTheoPct").innerHTML =
+  setText("breakevenTheo", "$" + breakevenTheo.toFixed(2));
+  setText(
+    "breakevenTheoPct",
     type === "call"
       ? "正股要升 " + breakevenTheoPct.toFixed(2) + "%"
-      : "正股要跌 " + breakevenTheoPct.toFixed(2) + "%";
+      : "正股要跌 " + breakevenTheoPct.toFixed(2) + "%"
+  );
 
   if (marketPrice !== null && marketPrice > 0) {
     const iv = impliedVolatility(type, marketPrice, S, K, T, r);
@@ -331,42 +399,41 @@ function calculate() {
       breakevenMarketPct = ((S - breakevenMarket) / S) * 100;
     }
 
-    document.getElementById("marketPriceDisplay").innerHTML = "$" + marketPrice.toFixed(2);
-    document.getElementById("impliedVol").innerHTML = (iv * 100).toFixed(2) + "%";
+    setText("marketPriceDisplay", "$" + marketPrice.toFixed(2));
+    setText("impliedVol", iv === null ? "--" : (iv * 100).toFixed(2) + "%");
 
     const diffClass = diff >= 0 ? "green" : "red";
     const diffText = diff >= 0
       ? "理論價高過市場 $" + diff.toFixed(2)
       : "理論價低過市場 $" + Math.abs(diff).toFixed(2);
 
-    document.getElementById("priceDiff").innerHTML = `<span class="${diffClass}">${diffText}</span>`;
-
-    document.getElementById("breakevenMarket").innerHTML = "$" + breakevenMarket.toFixed(2);
-    document.getElementById("breakevenMarketPct").innerHTML =
+    setText("priceDiff", `<span class="${diffClass}">${diffText}</span>`);
+    setText("breakevenMarket", "$" + breakevenMarket.toFixed(2));
+    setText(
+      "breakevenMarketPct",
       type === "call"
         ? "正股要升 " + breakevenMarketPct.toFixed(2) + "%"
-        : "正股要跌 " + breakevenMarketPct.toFixed(2) + "%";
+        : "正股要跌 " + breakevenMarketPct.toFixed(2) + "%"
+    );
   } else {
-    document.getElementById("marketPriceDisplay").innerHTML = "--";
-    document.getElementById("priceDiff").innerHTML = "--";
-    document.getElementById("impliedVol").innerHTML = "--";
-    document.getElementById("breakevenMarket").innerHTML = "--";
-    document.getElementById("breakevenMarketPct").innerHTML = "--";
+    setText("marketPriceDisplay", "--");
+    setText("priceDiff", "--");
+    setText("impliedVol", "--");
+    setText("breakevenMarket", "--");
+    setText("breakevenMarketPct", "--");
   }
 
-  calculateScenario(type, S, K, r, sigma, price, marketPrice, expiryDate);
+  calculateScenario(type, S, K, r, sigma, price, marketPrice, expiryDate, expiryTime);
 }
 
-function calculateScenario(type, S, K, r, sigma, currentTheoPrice, marketPrice, expiryDate) {
-  const scenarioDate = document.getElementById("scenarioDate").value;
+function calculateScenario(type, S, K, r, sigma, currentTheoPrice, marketPrice, expiryDate, expiryTime) {
+  const scenarioDateTime = document.getElementById("scenarioDateTime").value;
   const movePct = parseFloat(document.getElementById("scenarioMovePct").value);
 
-  if (!scenarioDate || isNaN(movePct)) {
-    return;
-  }
+  if (!scenarioDateTime || isNaN(movePct)) return;
 
-  const scenarioDays = calculateDays(scenarioDate, expiryDate);
-  const scenarioT = Math.max(scenarioDays, 0) / 365;
+  const timeData = calculateTimeToExpiry(scenarioDateTime, expiryDate, expiryTime);
+  const scenarioT = timeData.T;
 
   const newS = S * (1 + movePct / 100);
   const scenarioPrice = bsPrice(type, newS, K, scenarioT, r, sigma);
@@ -374,27 +441,31 @@ function calculateScenario(type, S, K, r, sigma, currentTheoPrice, marketPrice, 
   const scenarioTimeValue = scenarioPrice - scenarioIntrinsic;
 
   const changeTheo = scenarioPrice - currentTheoPrice;
-  const changeTheoPct = (changeTheo / currentTheoPrice) * 100;
+  const changeTheoPct = currentTheoPrice > 0 ? (changeTheo / currentTheoPrice) * 100 : 0;
 
-  document.getElementById("scenarioStockPrice").innerHTML = "$" + newS.toFixed(2);
-  document.getElementById("scenarioDays").innerHTML = scenarioDays + " 日";
-  document.getElementById("scenarioOptionPrice").innerHTML = "$" + scenarioPrice.toFixed(2);
-  document.getElementById("scenarioIntrinsic").innerHTML = "$" + scenarioIntrinsic.toFixed(2);
-  document.getElementById("scenarioTimeValue").innerHTML = "$" + scenarioTimeValue.toFixed(2);
+  setText("scenarioStockPrice", "$" + newS.toFixed(2));
+  setText("scenarioDays", formatTimeLeft(timeData.hours));
+  setText("scenarioOptionPrice", "$" + scenarioPrice.toFixed(2));
+  setText("scenarioIntrinsic", "$" + scenarioIntrinsic.toFixed(2));
+  setText("scenarioTimeValue", "$" + scenarioTimeValue.toFixed(2));
 
-  document.getElementById("scenarioChangeTheo").innerHTML =
+  setText(
+    "scenarioChangeTheo",
     (changeTheo >= 0 ? "+" : "") + "$" + changeTheo.toFixed(2) +
-    " / " + (changeTheoPct >= 0 ? "+" : "") + changeTheoPct.toFixed(2) + "%";
+    " / " + (changeTheoPct >= 0 ? "+" : "") + changeTheoPct.toFixed(2) + "%"
+  );
 
   if (marketPrice !== null && marketPrice > 0) {
     const changeMarket = scenarioPrice - marketPrice;
     const changeMarketPct = (changeMarket / marketPrice) * 100;
 
-    document.getElementById("scenarioChangeMarket").innerHTML =
+    setText(
+      "scenarioChangeMarket",
       (changeMarket >= 0 ? "+" : "") + "$" + changeMarket.toFixed(2) +
-      " / " + (changeMarketPct >= 0 ? "+" : "") + changeMarketPct.toFixed(2) + "%";
+      " / " + (changeMarketPct >= 0 ? "+" : "") + changeMarketPct.toFixed(2) + "%"
+    );
   } else {
-    document.getElementById("scenarioChangeMarket").innerHTML = "--";
+    setText("scenarioChangeMarket", "--");
   }
 }
 
