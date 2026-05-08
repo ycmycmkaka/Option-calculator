@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Option Calculator</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --card2: #f8fafc;
+      --text: #172033;
+      --muted: #667085;
+      --border: #d9e2ef;
+      --blue: #2563eb;
+      --blue2: #1d4ed8;
+      --green: #16a34a;
+      --red: #dc2626;
+      --yellow: #f59e0b;
+      --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+      --radius: 20px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", Arial, sans-serif;
+      background: linear-gradient(180deg, #f9fbff 0%, var(--bg) 100%);
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #ffffff 0%, #eef5ff 100%);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(37, 99, 235, 0.1);
+      color: var(--blue);
+      font-weight: 800;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 36px;
+      letter-spacing: -0.04em;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.75;
+      max-width: 900px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+    }
+
+    .span-4 { grid-column: span 4; }
+    .span-6 { grid-column: span 6; }
+    .span-8 { grid-column: span 8; }
+    .span-12 { grid-column: span 12; }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 22px;
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      margin: 0 0 10px;
+      font-size: 17px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    label {
+      font-size: 13px;
+      font-weight: 800;
+      color: #344054;
+    }
+
+    input, select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      padding: 12px 12px;
+      font-size: 15px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    button {
+      border: none;
+      border-radius: 14px;
+      padding: 12px 15px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--blue);
+      color: white;
+    }
+
+    .btn-primary:hover { background: var(--blue2); }
+
+    .btn-secondary {
+      background: #fff;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover { background: #f8fafc; }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .metric {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      min-height: 86px;
+    }
+
+    .metric .name {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .metric .value {
+      font-size: 22px;
+      font-weight: 900;
+      word-break: break-word;
+    }
+
+    .positive { color: var(--green); }
+    .negative { color: var(--red); }
+    .neutral { color: var(--text); }
+
+    .note {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+      margin-top: 12px;
+      background: #f8fafc;
+      border: 1px dashed var(--border);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 14px;
+      margin-top: 12px;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      padding: 11px 10px;
+      font-size: 14px;
+      vertical-align: middle;
+    }
+
+    th {
+      background: #f1f5f9;
+      color: #334155;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tr.best-row td {
+      background: rgba(22, 163, 74, 0.08);
+      font-weight: 800;
+    }
+
+    .chain-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr auto;
+      gap: 10px;
+      align-items: end;
+      margin-bottom: 10px;
+    }
+
+    .small-btn {
+      padding: 10px 12px;
+      border-radius: 12px;
+    }
+
+    .section-desc {
+      color: var(--muted);
+      margin: -4px 0 14px;
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    @media (max-width: 980px) {
+      .span-4, .span-6, .span-8 { grid-column: span 12; }
+      .result-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 640px) {
+      h1 { font-size: 28px; }
+      .hero { padding: 22px 18px; }
+      .form-grid, .result-grid, .chain-inputs { grid-template-columns: 1fr; }
+      .card { padding: 16px; }
+      th, td { font-size: 13px; padding: 10px 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section class="hero">
+      <div class="badge">📈 Option Calculator</div>
+      <h1>期權計算器：價格、Greeks、目標股價回報、到期最佳合約</h1>
+      <p>
+        輸入股票價格、行使價、到期日、IV、利率及權利金，即時計 Black–Scholes 理論價、Greeks、損益平衡。
+        另外可以模擬「到期前股價去到某個價位，交易賺/蝕幾多%」，以及「到期時股價到某個價，買邊張 Option 回報最高」。
+      </p>
+    </section>
+
+    <div class="grid">
+      <section class="card span-4">
+        <h2>基本資料</h2>
+        <div class="form-grid">
+          <div class="field">
+            <label>Call / Put</label>
+            <select id="optionType">
+              <option value="call">Call</option>
+              <option value="put">Put</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>股票現價</label>
+            <input id="spot" type="number" step="0.01" value="100" />
+          </div>
+          <div class="field">
+            <label>行使價 Strike</label>
+            <input id="strike" type="number" step="0.01" value="105" />
+          </div>
+          <div class="field">
+            <label>你買入 Option 價格 / Premium</label>
+            <input id="premium" type="number" step="0.01" value="2.50" />
+          </div>
+          <div class="field">
+            <label>到期日</label>
+            <input id="expiry" type="date" />
+          </div>
+          <div class="field">
+            <label>IV / 隱含波幅 (%)</label>
+            <input id="iv" type="number" step="0.01" value="45" />
+          </div>
+          <div class="field">
+            <label>無風險利率 (%)</label>
+            <input id="rate" type="number" step="0.01" value="4.50" />
+          </div>
+          <div class="field">
+            <label>股息率 (%)</label>
+            <input id="dividend" type="number" step="0.01" value="0" />
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn-primary" onclick="calculateAll()">重新計算</button>
+          <button class="btn-secondary" onclick="setDefaultExpiry()">到期日設為30日後</button>
+        </div>
+        <div class="note">
+          注意：Black–Scholes 是理論估值，實際市場價格會受買賣差價、流動性、IV 變化、除息、利率、提前行權風險等影響。
+        </div>
+      </section>
+
+      <section class="card span-8">
+        <h2>Black–Scholes 理論價與 Greeks</h2>
+        <div id="mainResults" class="result-grid"></div>
+        <div class="note" id="timeNote"></div>
+      </section>
+
+      <section class="card span-6">
+        <h2>功能 1：到期前目標股價回報分析</h2>
+        <p class="section-desc">
+          假設到期前某一日，股票升/跌到你指定價格，系統會用剩餘時間重新計理論 Option 價，再同你買入價比較，計出賺蝕百分比。
+        </p>
+        <div class="form-grid">
+          <div class="field">
+            <label>目標日期</label>
+            <input id="targetDate" type="date" />
+          </div>
+          <div class="field">
+            <label>目標股價</label>
+            <input id="targetSpot" type="number" step="0.01" value="115" />
+          </div>
+          <div class="field">
+            <label>目標日期 IV (%)</label>
+            <input id="targetIv" type="number" step="0.01" value="45" />
+          </div>
+          <div class="field">
+            <label>合約張數</label>
+            <input id="contracts" type="number" step="1" value="1" />
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn-primary" onclick="calculateAll()">計算目標回報</button>
+        </div>
+        <div id="targetResults" class="result-grid"></div>
+      </section>
+
+      <section class="card span-6">
+        <h2>功能 2：到期時邊張 Option 最賺錢</h2>
+        <p class="section-desc">
+          輸入你想比較的幾張合約：Strike、Premium、Call/Put。假設到期時股價到某個價位，系統會計每張合約的到期價值、利潤及回報率，並標示最高回報。
+        </p>
+        <div class="field" style="margin-bottom: 12px;">
+          <label>到期時假設股價</label>
+          <input id="expirySpot" type="number" step="0.01" value="120" />
+        </div>
+
+        <div class="chain-inputs">
+          <div class="field">
+            <label>合約類型</label>
+            <select id="chainType">
+              <option value="call">Call</option>
+              <option value="put">Put</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Strike</label>
+            <input id="chainStrike" type="number" step="0.01" value="105" />
+          </div>
+          <div class="field">
+            <label>Premium</label>
+            <input id="chainPremium" type="number" step="0.01" value="2.50" />
+          </div>
+          <button class="btn-secondary small-btn" onclick="addChainRow()">加入</button>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn-primary" onclick="calculateAll()">比較邊張最賺</button>
+          <button class="btn-secondary" onclick="addSampleChain()">加入示例合約</button>
+          <button class="btn-secondary" onclick="clearChain()">清空合約</button>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>類型</th>
+              <th>Strike</th>
+              <th>Premium</th>
+              <th>到期價值</th>
+              <th>每股利潤</th>
+              <th>回報率</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="chainTable"></tbody>
+        </table>
+      </section>
+
+      <section class="card span-12">
+        <h2>快速說明</h2>
+        <div class="note">
+          <b>功能 1</b> 適合問：「未到期之前，如果股票去到 $115，我張 Call 大約賺幾多%？」因為未到期仍有時間值，所以會用 Black–Scholes 重新估價。<br />
+          <b>功能 2</b> 適合問：「如果到期時股票升到 $120，我買 $105 Call、$110 Call、$115 Call，邊張回報最高？」到期時只睇內在價值，即 Call = max(股價 - Strike, 0)，Put = max(Strike - 股價, 0)。
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    let chain = [];
+
+    function setDefaultExpiry() {
+      const d = new Date();
+      d.setDate(d.getDate() + 30);
+      document.getElementById('expiry').value = toDateInputValue(d);
+      const td = new Date();
+      td.setDate(td.getDate() + 7);
+      document.getElementById('targetDate').value = toDateInputValue(td);
+      calculateAll();
+    }
+
+    function toDateInputValue(date) {
+      const yyyy = date.getFullYear();
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const dd = String(date.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    function num(id) {
+      const value = parseFloat(document.getElementById(id).value);
+      return Number.isFinite(value) ? value : 0;
+    }
+
+    function getDate(id) {
+      const v = document.getElementById(id).value;
+      return v ? new Date(v + 'T16:00:00') : null;
+    }
+
+    function yearFraction(fromDate, toDate) {
+      if (!fromDate || !toDate) return 0;
+      const ms = toDate - fromDate;
+      return Math.max(ms / (365 * 24 * 60 * 60 * 1000), 0);
+    }
+
+    function erf(x) {
+      const sign = x >= 0 ? 1 : -1;
+      x = Math.abs(x);
+      const a1 = 0.254829592;
+      const a2 = -0.284496736;
+      const a3 = 1.421413741;
+      const a4 = -1.453152027;
+      const a5 = 1.061405429;
+      const p = 0.3275911;
+      const t = 1 / (1 + p * x);
+      const y = 1 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+      return sign * y;
+    }
+
+    function normCdf(x) {
+      return 0.5 * (1 + erf(x / Math.sqrt(2)));
+    }
+
+    function normPdf(x) {
+      return Math.exp(-0.5 * x * x) / Math.sqrt(2 * Math.PI);
+    }
+
+    function blackScholes(type, S, K, T, r, sigma, q) {
+      if (T <= 0 || sigma <= 0 || S <= 0 || K <= 0) {
+        const intrinsic = type === 'call' ? Math.max(S - K, 0) : Math.max(K - S, 0);
+        return {
+          price: intrinsic,
+          delta: type === 'call' ? (S > K ? 1 : 0) : (S < K ? -1 : 0),
+          gamma: 0,
+          theta: 0,
+          vega: 0,
+          rho: 0,
+          d1: 0,
+          d2: 0
+        };
+      }
+
+      const d1 = (Math.log(S / K) + (r - q + 0.5 * sigma * sigma) * T) / (sigma * Math.sqrt(T));
+      const d2 = d1 - sigma * Math.sqrt(T);
+      const discQ = Math.exp(-q * T);
+      const discR = Math.exp(-r * T);
+
+      let price, delta, theta, rho;
+
+      if (type === 'call') {
+        price = S * discQ * normCdf(d1) - K * discR * normCdf(d2);
+        delta = discQ * normCdf(d1);
+        theta = (-(S * discQ * normPdf(d1) * sigma) / (2 * Math.sqrt(T)) - r * K * discR * normCdf(d2) + q * S * discQ * normCdf(d1)) / 365;
+        rho = (K * T * discR * normCdf(d2)) / 100;
+      } else {
+        price = K * discR * normCdf(-d2) - S * discQ * normCdf(-d1);
+        delta = discQ * (normCdf(d1) - 1);
+        theta = (-(S * discQ * normPdf(d1) * sigma) / (2 * Math.sqrt(T)) + r * K * discR * normCdf(-d2) - q * S * discQ * normCdf(-d1)) / 365;
+        rho = (-K * T * discR * normCdf(-d2)) / 100;
+      }
+
+      const gamma = (discQ * normPdf(d1)) / (S * sigma * Math.sqrt(T));
+      const vega = (S * discQ * normPdf(d1) * Math.sqrt(T)) / 100;
+
+      return { price, delta, gamma, theta, vega, rho, d1, d2 };
+    }
+
+    function money(v) {
+      if (!Number.isFinite(v)) return '-';
+      return '$' + v.toFixed(2);
+    }
+
+    function pct(v) {
+      if (!Number.isFinite(v)) return '-';
+      return v.toFixed(2) + '%';
+    }
+
+    function cls(v) {
+      if (v > 0) return 'positive';
+      if (v < 0) return 'negative';
+      return 'neutral';
+    }
+
+    function metric(name, value, className = 'neutral') {
+      return `<div class="metric"><div class="name">${name}</div><div class="value ${className}">${value}</div></div>`;
+    }
+
+    function calculateAll() {
+      const type = document.getElementById('optionType').value;
+      const S = num('spot');
+      const K = num('strike');
+      const premium = num('premium');
+      const expiry = getDate('expiry');
+      const now = new Date();
+      const T = yearFraction(now, expiry);
+      const iv = num('iv') / 100;
+      const r = num('rate') / 100;
+      const q = num('dividend') / 100;
+      const contracts = Math.max(num('contracts'), 1);
+
+      const bs = blackScholes(type, S, K, T, r, iv, q);
+      const intrinsic = type === 'call' ? Math.max(S - K, 0) : Math.max(K - S, 0);
+      const timeValue = Math.max(bs.price - intrinsic, 0);
+      const breakeven = type === 'call' ? K + premium : K - premium;
+      const totalCost = premium * 100 * contracts;
+
+      document.getElementById('mainResults').innerHTML =
+        metric('理論價', money(bs.price)) +
+        metric('你買入價', money(premium)) +
+        metric('損益平衡價', money(breakeven)) +
+        metric('內在價值', money(intrinsic)) +
+        metric('時間值', money(timeValue)) +
+        metric('Delta', bs.delta.toFixed(4)) +
+        metric('Gamma', bs.gamma.toFixed(4)) +
+        metric('Theta / 日', money(bs.theta), cls(bs.theta)) +
+        metric('Vega / IV 1%', money(bs.vega)) +
+        metric('Rho / Rate 1%', money(bs.rho)) +
+        metric('d1', bs.d1.toFixed(4)) +
+        metric('d2', bs.d2.toFixed(4));
+
+      const daysLeft = Math.max(T * 365, 0);
+      document.getElementById('timeNote').innerHTML = `距離到期約 <b>${daysLeft.toFixed(1)}</b> 日。每張合約一般代表 100 股，所以 ${contracts} 張、Premium ${money(premium)} 的總成本約為 <b>${money(totalCost)}</b>。`;
+
+      calculateTargetScenario(type, K, premium, expiry, r, q, contracts);
+      renderChainTable();
+    }
+
+    function calculateTargetScenario(type, K, premium, expiry, r, q, contracts) {
+      const targetDate = getDate('targetDate');
+      const targetSpot = num('targetSpot');
+      const targetIv = num('targetIv') / 100;
+      const Ttarget = yearFraction(targetDate, expiry);
+      const bsTarget = blackScholes(type, targetSpot, K, Ttarget, r, targetIv, q);
+      const profitPerShare = bsTarget.price - premium;
+      const returnPct = premium > 0 ? (profitPerShare / premium) * 100 : 0;
+      const totalProfit = profitPerShare * 100 * contracts;
+      const targetIntrinsic = type === 'call' ? Math.max(targetSpot - K, 0) : Math.max(K - targetSpot, 0);
+
+      document.getElementById('targetResults').innerHTML =
+        metric('目標日理論價', money(bsTarget.price)) +
+        metric('每股利潤', money(profitPerShare), cls(profitPerShare)) +
+        metric('回報率', pct(returnPct), cls(returnPct)) +
+        metric('總利潤', money(totalProfit), cls(totalProfit)) +
+        metric('目標日內在價值', money(targetIntrinsic)) +
+        metric('目標日剩餘日數', (Ttarget * 365).toFixed(1) + '日');
+    }
+
+    function addChainRow() {
+      const type = document.getElementById('chainType').value;
+      const strike = num('chainStrike');
+      const premium = num('chainPremium');
+      if (strike <= 0 || premium < 0) return;
+      chain.push({ type, strike, premium });
+      renderChainTable();
+    }
+
+    function addSampleChain() {
+      const currentType = document.getElementById('optionType').value;
+      chain = [
+        { type: currentType, strike: 100, premium: 8.50 },
+        { type: currentType, strike: 105, premium: 5.30 },
+        { type: currentType, strike: 110, premium: 3.10 },
+        { type: currentType, strike: 115, premium: 1.65 },
+        { type: currentType, strike: 120, premium: 0.85 }
+      ];
+      renderChainTable();
+    }
+
+    function clearChain() {
+      chain = [];
+      renderChainTable();
+    }
+
+    function removeChainRow(index) {
+      chain.splice(index, 1);
+      renderChainTable();
+    }
+
+    function expiryValue(type, S, K) {
+      return type === 'call' ? Math.max(S - K, 0) : Math.max(K - S, 0);
+    }
+
+    function renderChainTable() {
+      const Sexp = num('expirySpot');
+      const tbody = document.getElementById('chainTable');
+      if (!tbody) return;
+
+      if (chain.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="color: var(--muted);">未加入任何合約。你可以按「加入示例合約」或者自己輸入 Strike / Premium。</td></tr>`;
+        return;
+      }
+
+      const rows = chain.map((c, index) => {
+        const value = expiryValue(c.type, Sexp, c.strike);
+        const profit = value - c.premium;
+        const ret = c.premium > 0 ? (profit / c.premium) * 100 : 0;
+        return { ...c, index, value, profit, ret };
+      });
+
+      let bestIndex = 0;
+      rows.forEach((r, i) => {
+        if (r.ret > rows[bestIndex].ret) bestIndex = i;
+      });
+
+      tbody.innerHTML = rows.map((r, i) => {
+        const isBest = i === bestIndex;
+        return `
+          <tr class="${isBest ? 'best-row' : ''}">
+            <td>${r.type.toUpperCase()} ${isBest ? '🏆' : ''}</td>
+            <td>${money(r.strike)}</td>
+            <td>${money(r.premium)}</td>
+            <td>${money(r.value)}</td>
+            <td class="${cls(r.profit)}">${money(r.profit)}</td>
+            <td class="${cls(r.ret)}">${pct(r.ret)}</td>
+            <td><button class="btn-secondary small-btn" onclick="removeChainRow(${r.index})">刪除</button></td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      setDefaultExpiry();
+      document.getElementById('expirySpot').addEventListener('input', renderChainTable);
+      ['optionType', 'spot', 'strike', 'premium', 'expiry', 'iv', 'rate', 'dividend', 'targetDate', 'targetSpot', 'targetIv', 'contracts'].forEach(id => {
+        document.getElementById(id).addEventListener('input', calculateAll);
+        document.getElementById(id).addEventListener('change', calculateAll);
+      });
+    });
+  </script>
+</body>
+</html>
