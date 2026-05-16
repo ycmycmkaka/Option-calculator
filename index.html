@@ -7,19 +7,31 @@
 
 <style>
 *{box-sizing:border-box}
+
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   background:#f4f7fb;
   color:#132238;
 }
+
 .container{
   max-width:1200px;
   margin:auto;
   padding:24px;
 }
-h1{margin-top:0;font-size:38px}
-.subtitle{color:#5d6b7b;margin-bottom:28px;line-height:1.6}
+
+h1{
+  margin-top:0;
+  font-size:38px;
+}
+
+.subtitle{
+  color:#5d6b7b;
+  margin-bottom:28px;
+  line-height:1.6;
+}
+
 .panel{
   background:white;
   border-radius:20px;
@@ -27,26 +39,39 @@ h1{margin-top:0;font-size:38px}
   margin-bottom:24px;
   box-shadow:0 8px 24px rgba(0,0,0,0.06);
 }
-h2{margin-top:0;margin-bottom:10px}
-.desc{color:#667689;line-height:1.6;margin-bottom:24px}
+
+h2{
+  margin-top:0;
+  margin-bottom:10px;
+}
+
+.desc{
+  color:#667689;
+  line-height:1.6;
+  margin-bottom:24px;
+}
+
 .form-grid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
   gap:18px;
   margin-bottom:22px;
 }
+
 label{
   display:flex;
   flex-direction:column;
   gap:8px;
   font-weight:600;
 }
+
 input,select{
   padding:12px;
   border-radius:12px;
   border:1px solid #d6deea;
   font-size:15px;
 }
+
 button{
   border:none;
   background:#1f7cff;
@@ -59,8 +84,15 @@ button{
   margin-right:8px;
   margin-bottom:8px;
 }
-button:hover{filter:brightness(1.05)}
-.result{margin-top:24px}
+
+button:hover{
+  filter:brightness(1.05);
+}
+
+.result{
+  margin-top:24px;
+}
+
 .result-box{
   background:#f8fbff;
   border:1px solid #d6e7ff;
@@ -68,8 +100,17 @@ button:hover{filter:brightness(1.05)}
   padding:18px;
   line-height:1.8;
 }
-.profit{color:#0f9d58;font-weight:700}
-.loss{color:#d93025;font-weight:700}
+
+.profit{
+  color:#0f9d58;
+  font-weight:700;
+}
+
+.loss{
+  color:#d93025;
+  font-weight:700;
+}
+
 .best-box{
   background:#edf9f0;
   border:1px solid #b8ebc4;
@@ -78,25 +119,40 @@ button:hover{filter:brightness(1.05)}
   margin-bottom:20px;
   line-height:1.8;
 }
+
 table{
   width:100%;
   border-collapse:collapse;
   margin-top:18px;
 }
+
 th,td{
   border:1px solid #dde5f0;
   padding:12px;
   text-align:center;
 }
-th{background:#f3f6fb}
-.best-row{background:#e8f7ec;font-weight:700}
-.warning{color:#d93025;font-weight:700}
+
+th{
+  background:#f3f6fb;
+}
+
+.best-row{
+  background:#e8f7ec;
+  font-weight:700;
+}
+
+.warning{
+  color:#d93025;
+  font-weight:700;
+}
+
 .small-note{
   color:#667689;
   font-size:14px;
   line-height:1.6;
   margin-top:12px;
 }
+
 @media(max-width:768px){
   h1{font-size:30px}
   .container{padding:16px}
@@ -110,51 +166,63 @@ th{background:#f3f6fb}
 <div class="container">
 
 <h1>Advanced Option Calculator</h1>
+
 <div class="subtitle">
   Black-Scholes 理論價、IV 反推、到期 Profit、未到期平倉最佳 Option 比較
 </div>
 
 <section class="panel">
 <h2>一：理論價 / 反推 IV</h2>
+
 <p class="desc">
   你可以用 IV 計理論價，亦可以輸入市場 Option 價格，反推出市場隱含 IV。
 </p>
 
 <div class="form-grid">
-  <label>Option Type
+
+  <label>
+    Option Type
     <select id="optionType">
       <option value="call">Call</option>
       <option value="put">Put</option>
     </select>
   </label>
 
-  <label>Stock Price
+  <label>
+    Stock Price
     <input id="spotPrice" type="number" value="100" step="0.01">
   </label>
 
-  <label>Strike Price
+  <label>
+    Strike Price
     <input id="strikePrice" type="number" value="105" step="0.01">
   </label>
 
-  <label>IV %
+  <label>
+    IV %
     <input id="iv" type="number" value="60" step="0.1">
   </label>
 
-  <label>Market Option Price（反推 IV 用）
+  <label>
+    Market Option Price（反推 IV 用）
     <input id="marketPrice" type="number" value="5" step="0.01">
   </label>
 
-  <label>Risk-free Rate %
+  <label>
+    Risk-free Rate %
     <input id="rate" type="number" value="4.5" step="0.1">
   </label>
 
-  <label>Days to Expiry
+  <label>
+    Days to Expiry
     <input id="days" type="number" value="30" step="1">
   </label>
 
-  <label>Extra Hours to Expiry
+  <label>
+    Extra Hours to Expiry
     <input id="hours" type="number" value="0" step="0.5">
   </label>
+
 </div>
 
 <button onclick="calculateOption()">用 IV 計理論價</button>
@@ -166,17 +234,26 @@ th{background:#f3f6fb}
 <section class="panel">
 <h2>二：到期時賺幾多 %？</h2>
 
+<p class="desc">
+  用你買入 Option 嘅價格，計算到期時如果股價去到指定價位，呢張 Option 會賺或蝕幾多。
+</p>
+
 <div class="form-grid">
-  <label>買入 Option 價格
+
+  <label>
+    買入 Option 價格
     <input id="entryPremium" type="number" value="5" step="0.01">
   </label>
 
-  <label>到期時股價
+  <label>
+    到期時股價
     <input id="targetPrice" type="number" value="120" step="0.01">
   </label>
+
 </div>
 
 <button onclick="calculateProfitScenario()">計算 Profit</button>
+
 <div id="profitResult" class="result"></div>
 </section>
 
@@ -189,44 +266,56 @@ th{background:#f3f6fb}
 </p>
 
 <div class="form-grid">
-  <label>買入時 Underlying 現價
+
+  <label>
+    買入時 Underlying 現價
     <input id="bestSpot" type="number" value="100" step="0.01">
   </label>
 
-  <label>平倉時預計股價
+  <label>
+    平倉時預計股價
     <input id="exitStockPrice" type="number" value="120" step="0.01">
   </label>
 
-  <label>買入時 IV %
+  <label>
+    買入時 IV %
     <input id="bestIv" type="number" value="60" step="0.1">
   </label>
 
-  <label>平倉時 IV %
+  <label>
+    平倉時 IV %
     <input id="exitIv" type="number" value="60" step="0.1">
   </label>
 
-  <label>Risk-free Rate %
+  <label>
+    Risk-free Rate %
     <input id="bestRate" type="number" value="4.5" step="0.1">
   </label>
 
-  <label>買入時 Days to Expiry
+  <label>
+    買入時 Days to Expiry
     <input id="entryDays" type="number" value="5" step="1">
   </label>
 
-  <label>買入時 Extra Hours
+  <label>
+    買入時 Extra Hours
     <input id="entryHours" type="number" value="0" step="0.5">
   </label>
 
-  <label>平倉時剩餘 Days
+  <label>
+    平倉時剩餘 Days
     <input id="exitDays" type="number" value="2" step="1">
   </label>
 
-  <label>平倉時剩餘 Hours
+  <label>
+    平倉時剩餘 Hours
     <input id="exitHours" type="number" value="0" step="0.5">
   </label>
+
 </div>
 
 <button onclick="calculateBestOption()">分析最佳 Option</button>
+
 <div id="bestOptionResult" class="result"></div>
 </section>
 
@@ -308,6 +397,34 @@ function impliedVolatility(optionType,S,K,T,r,marketPrice){
   return mid;
 }
 
+function formatPrice(value){
+  if(Math.abs(value) >= 1){
+    return value.toFixed(2);
+  }
+
+  if(Math.abs(value) >= 0.01){
+    return value.toFixed(4);
+  }
+
+  if(Math.abs(value) >= 0.0001){
+    return value.toFixed(6);
+  }
+
+  return value.toExponential(2);
+}
+
+function labelPercent(percent){
+  if(percent === 0){
+    return "ATM";
+  }
+
+  if(percent < 0){
+    return percent + "% ITM";
+  }
+
+  return "+" + percent + "% OTM";
+}
+
 function calculateOption(){
   const type = document.getElementById("optionType").value;
   const S = parseFloat(document.getElementById("spotPrice").value);
@@ -319,7 +436,10 @@ function calculateOption(){
 
   const resultBox = document.getElementById("optionResult");
 
-  if(isNaN(S)||isNaN(K)||isNaN(iv)||isNaN(r)||isNaN(days)||isNaN(hours)||S<=0||K<=0||iv<0||days<0||hours<0){
+  if(
+    isNaN(S)||isNaN(K)||isNaN(iv)||isNaN(r)||isNaN(days)||isNaN(hours)||
+    S<=0||K<=0||iv<0||days<0||hours<0
+  ){
     resultBox.innerHTML = `<div class="result-box warning">請輸入有效數字。</div>`;
     return;
   }
@@ -329,7 +449,7 @@ function calculateOption(){
 
   resultBox.innerHTML = `
     <div class="result-box">
-      <div><strong>理論價格：</strong>$${price.toFixed(2)}</div>
+      <div><strong>理論價格：</strong>$${formatPrice(price)}</div>
       <div><strong>輸入 IV：</strong>${(iv*100).toFixed(2)}%</div>
       <div><strong>剩餘時間：</strong>${days}日 ${hours}小時</div>
       <div><strong>年化 T：</strong>${T.toFixed(8)}</div>
@@ -348,7 +468,10 @@ function calculateImpliedVol(){
 
   const resultBox = document.getElementById("optionResult");
 
-  if(isNaN(S)||isNaN(K)||isNaN(marketPrice)||isNaN(r)||isNaN(days)||isNaN(hours)||S<=0||K<=0||marketPrice<=0||days<0||hours<0){
+  if(
+    isNaN(S)||isNaN(K)||isNaN(marketPrice)||isNaN(r)||isNaN(days)||isNaN(hours)||
+    S<=0||K<=0||marketPrice<=0||days<0||hours<0
+  ){
     resultBox.innerHTML = `<div class="result-box warning">請輸入有效數字。</div>`;
     return;
   }
@@ -359,9 +482,9 @@ function calculateImpliedVol(){
 
   resultBox.innerHTML = `
     <div class="result-box">
-      <div><strong>市場 Option 價格：</strong>$${marketPrice.toFixed(2)}</div>
+      <div><strong>市場 Option 價格：</strong>$${formatPrice(marketPrice)}</div>
       <div><strong>反推出 IV：</strong>${(iv*100).toFixed(2)}%</div>
-      <div><strong>驗算理論價：</strong>$${checkPrice.toFixed(2)}</div>
+      <div><strong>驗算理論價：</strong>$${formatPrice(checkPrice)}</div>
       <div><strong>剩餘時間：</strong>${days}日 ${hours}小時</div>
       <div><strong>年化 T：</strong>${T.toFixed(8)}</div>
     </div>
@@ -391,8 +514,8 @@ function calculateProfitScenario(){
 
   resultBox.innerHTML = `
     <div class="result-box">
-      <div><strong>到期內在價值：</strong>$${expiryValue.toFixed(2)}</div>
-      <div><strong>Profit：</strong>$${profit.toFixed(2)}</div>
+      <div><strong>到期內在價值：</strong>$${formatPrice(expiryValue)}</div>
+      <div><strong>Profit：</strong>$${formatPrice(profit)}</div>
       <div class="${className}"><strong>回報率：</strong>${returnPct.toFixed(2)}%</div>
     </div>
   `;
@@ -430,7 +553,23 @@ function calculateBestOption(){
     return;
   }
 
-  const strikePercents = [0,2,5,10,20,30,50,75,100];
+  const strikePercents = [
+    -20,
+    -10,
+    -5,
+    -2,
+    -1,
+     0,
+     1,
+     2,
+     5,
+     10,
+     20,
+     30,
+     50,
+     75,
+     100
+  ];
 
   let rows = [];
   let best = null;
@@ -462,10 +601,10 @@ function calculateBestOption(){
 
   let html = `
     <div class="best-box">
-      <div><strong>最佳 Strike：</strong>${best.strike.toFixed(2)} (${best.percent===0?"ATM":"+"+best.percent+"%"})</div>
-      <div><strong>買入理論價：</strong>$${best.entryPremium.toFixed(2)}</div>
-      <div><strong>平倉理論價：</strong>$${best.exitPremium.toFixed(2)}</div>
-      <div><strong>Profit：</strong>$${best.profit.toFixed(2)}</div>
+      <div><strong>最佳 Strike：</strong>${best.strike.toFixed(2)} (${labelPercent(best.percent)})</div>
+      <div><strong>買入理論價：</strong>$${formatPrice(best.entryPremium)}</div>
+      <div><strong>平倉理論價：</strong>$${formatPrice(best.exitPremium)}</div>
+      <div><strong>Profit：</strong>$${formatPrice(best.profit)}</div>
       <div class="${best.returnPct>=0?"profit":"loss"}"><strong>回報率：</strong>${best.returnPct.toFixed(2)}%</div>
       <div><strong>買入時剩餘：</strong>${entryDays}日 ${entryHours}小時</div>
       <div><strong>平倉時剩餘：</strong>${exitDays}日 ${exitHours}小時</div>
@@ -491,11 +630,11 @@ function calculateBestOption(){
 
     html += `
       <tr class="${cls}">
-        <td>${row.percent===0?"ATM":"+"+row.percent+"%"}</td>
+        <td>${labelPercent(row.percent)}</td>
         <td>${row.strike.toFixed(2)}</td>
-        <td>$${row.entryPremium.toFixed(2)}</td>
-        <td>$${row.exitPremium.toFixed(2)}</td>
-        <td>$${row.profit.toFixed(2)}</td>
+        <td>$${formatPrice(row.entryPremium)}</td>
+        <td>$${formatPrice(row.exitPremium)}</td>
+        <td>$${formatPrice(row.profit)}</td>
         <td class="${profitClass}">${row.returnPct.toFixed(2)}%</td>
       </tr>
     `;
@@ -506,7 +645,10 @@ function calculateBestOption(){
     </table>
 
     <div class="small-note">
-      注意：呢個比較假設你用理論價買入，再用理論價平倉。
+      負數 = ITM Call，例如 -5% 代表 Strike 比現價低 5%。<br>
+      ATM = At The Money。<br>
+      正數 = OTM Call，例如 +5% 代表 Strike 比現價高 5%。<br><br>
+      呢個比較假設你用理論價買入，再用理論價平倉。
       真實交易會受 bid/ask spread、流動性、IV 變化、財報事件同滑價影響。
     </div>
   `;
